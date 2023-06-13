@@ -4,22 +4,19 @@ BLACK = (0, 0, 0)
 
 
 class Paddle(pygame.sprite.Sprite):
-    def __init__(self, width, height, grid_width, grid_height):
+    def __init__(self, width, height,size_width, size_heigth):
+        #super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        # self.grid_width = grid_width
-        # self.grid_height = grid_height
 
-        # Calculate the width and height of each grid cell
-        cell_width = width // grid_width
-        cell_height = height // grid_height
-
+        #Cell 
+        pixel_height= size_heigth/height
+        pixel_width= size_width/width
         # Create an image of the paddle
         self.image = pygame.Surface([width, height])
         self.image.fill(BLACK)
-        pygame.draw.rect(self.image, BLACK, [0, 0, width, height])
-
         # Scale the image to fit the grid cell size
-        self.image = pygame.transform.scale(self.image, (cell_width, cell_height))
+        self.image = pygame.transform.scale(self.image, (pixel_width, pixel_height))
+        pygame.draw.rect(self.image, BLACK, [0, 0, width, height])
 
         self.rect = self.image.get_rect()
 
