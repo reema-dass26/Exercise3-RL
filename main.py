@@ -57,7 +57,17 @@ while(play):
         pygame.draw.line(screen, ORANGE, (0, y), (size[0], y))
 
     # Move paddle
-    paddle.move_x(-1)
+    # Moving the paddle when the user uses the arrow keys
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        paddle.speed-=1
+    if keys[pygame.K_RIGHT]:
+        paddle.speed+=1
+    paddle.update_speed()
+    paddle.move_x(paddle.speed)
+
+    
     
 
     all_sprites_list.update()
@@ -71,7 +81,7 @@ while(play):
     pygame.display.flip()
      
     # --- Limit to 60 frames per second
-    clock.tick(60)
+    clock.tick(20)
 
 
 

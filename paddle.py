@@ -9,6 +9,8 @@ class Paddle(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.screen_width = size_width
         self.screen_height = size_heigth
+        self.speed=0
+        
         # Cell
         pixel_height = size_heigth / height
         pixel_width = size_width / width
@@ -46,3 +48,9 @@ class Paddle(pygame.sprite.Sprite):
     def move_right(self):
         if self.rect.x < (self.grid_width - 1) * self.rect.width:
             self.rect.x += self.rect.width
+    def update_speed(self):
+        if self.speed>2:
+            self.speed=2
+        if self.speed<-2:
+            self.speed=-2
+    
