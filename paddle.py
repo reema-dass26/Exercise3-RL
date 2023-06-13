@@ -37,7 +37,7 @@ class Paddle(pygame.sprite.Sprite):
             to_move = -min(-distance, self.rect.x)
         else:
             to_move = min(distance, self.screen_width - (self.rect.x + self.rect.width))
-        self.rect.x += distance
+        self.rect.x += to_move
 
     def move_left(self):
         if self.rect.x > 0:
