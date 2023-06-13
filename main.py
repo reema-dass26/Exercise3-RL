@@ -56,6 +56,8 @@ while(play):
     for y in range(0, size[1], cell_height):
         pygame.draw.line(screen, ORANGE, (0, y), (size[0], y))
 
+    # Move paddle
+    paddle.move_x(-1)
     
 
     all_sprites_list.update()

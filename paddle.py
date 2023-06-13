@@ -4,13 +4,14 @@ BLACK = (0, 0, 0)
 
 
 class Paddle(pygame.sprite.Sprite):
-    def __init__(self, width, height,size_width, size_heigth):
-        #super().__init__()
+    def __init__(self, width, height, size_width, size_heigth):
+        # super().__init__()
         pygame.sprite.Sprite.__init__(self)
-
-        #Cell 
-        pixel_height= size_heigth/height
-        pixel_width= size_width/width
+        self.screen_width = size_width
+        self.screen_height = size_heigth
+        # Cell
+        pixel_height = size_heigth / height
+        pixel_width = size_width / width
         # Create an image of the paddle
         self.image = pygame.Surface([width, height])
         self.image.fill(BLACK)
@@ -20,6 +21,24 @@ class Paddle(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
 
+    # def collision_x(self):
+    #     """
+    #     Returns 
+    #     -1 if the paddle touches the left border of the screen, 
+    #      1 if it touches the right, 
+    #      0 if neither.
+    #     """
+
+    #     if self.rect.x 
+
+    def move_x(self, distance):
+        to_move = 0
+        if distance < 0:
+            to_move = -min(-distance, self.rect.x)
+        else:
+            to_move = min(distance, self.screen_width - (self.rect.x + self.rect.width))
+        self.rect.x += distance
+
     def move_left(self):
         if self.rect.x > 0:
             self.rect.x -= self.rect.width
@@ -27,4 +46,3 @@ class Paddle(pygame.sprite.Sprite):
     def move_right(self):
         if self.rect.x < (self.grid_width - 1) * self.rect.width:
             self.rect.x += self.rect.width
-
