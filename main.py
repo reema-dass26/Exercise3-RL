@@ -28,7 +28,7 @@ cell_height = size[1] // grid_height
 all_sprites_list = pygame.sprite.Group()
 
 #Code for putting in the paddle
-paddle=Paddle(1,5,size[0],size[1])
+paddle=Paddle(2,5,size[0],size[1])
 paddle.rect.x=300
 paddle.rect.y=200
 
