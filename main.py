@@ -2,9 +2,11 @@ import pygame
 from paddle import Paddle
 from ball import Ball
 from brick import Brick
+from mc import Agent
 import os
 import sys
 import time
+import random
 
 def create_bricks(layers, brick_size, bricks_per_layer):
     bricks = []
@@ -36,6 +38,8 @@ pygame.display.set_caption("Breakout Game")
 start_time = time.time()
 last_time = start_time
 
+agent = Agent()
+
 #Function for restarting if game ends
 def restart_program():
     python = sys.executable
@@ -61,21 +65,41 @@ while not won:
 
     #Define a clock
     clock = pygame.time.Clock()
-    fps = 120
+    fps = 60
+    agent_wait_time = 10
+    iteration = 0
+    paddle_bumps: int = 0
     while(play):
         
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT]:
-                    paddle.speed-=1
-                if keys[pygame.K_RIGHT]:
-                    paddle.speed+=1
-                paddle.update_speed()
+            # Manual control
+            # if event.type == pygame.KEYDOWN:
+            #     # keys = pygame.key.get_pressed()
+            #     # if keys[pygame.K_LEFT]:
+            #     #     paddle.speed-=1
+            #     # if keys[pygame.K_RIGHT]:
+            #     #     paddle.speed+=1
+            #     # paddle.update_speed()
+            #     paddle.speed += random.choice([-1, 0, 1])
+
             if event.type == pygame.QUIT:
                 play=False
                 won=True
-        
+
+        if not iteration % agent_wait_time:
+            # Agent:
+
+            state = (
+                paddle.rect.x, # Paddle position
+                paddle.speed, # Paddle speed
+                (ball.rect.x, ball.rect.y), # Ball position
+                tuple(ball.speed), # Ball speed
+            )
+
+            action = agent.policy(state)
+            paddle.speed += action
+            paddle.update_speed()
+
         # --- Drawing code should go here
         # First, clear the screen be white 
         screen.fill(WHITE)
@@ -110,7 +134,8 @@ while not won:
         ball.collision_bricks(bricks)
         #Return only bricks 
         bricks = all_sprites_list.sprites()[2:]
-        ball.collision_paddle(paddle)
+        if ball.collision_paddle(paddle):
+            paddle_bumps += 1
         ball.move(ball.speed)
         paddle.move_x(paddle.speed)
         if paddle.collision_x():
@@ -133,10 +158,24 @@ while not won:
 
         #pygame.draw.line(screen, ORANGE, [0, 38], [800, 38], 2)
         
+        if not iteration % agent_wait_time:                
+            # Agent rewards
+            reward = agent.get_score(bricks, paddle_bumps)
+            paddle_bumps = 0
+            agent.remember_reward(state, action, reward)
+            print(f"""
+                Agent:
+                state:        {state}
+                action:       {action}
+                reward:       {reward}
+                total_reward: {agent.total_reward}
+                """)
+
         # --- Go ahead and update the screen with what we've drawn.
         pygame.display.flip()
         
         # --- Limit to 60 frames per second
+        iteration += 1
         clock.tick(fps)
 
 

@@ -73,14 +73,20 @@ class Ball(pygame.sprite.Sprite):
             pixel_size= self.screen_width/15
             if paddle.rect.x-pixel_size<=self.rect.x<paddle.rect.x+pixel_size/2:
                 self.speed=[-2,-1]
+                return True
             if paddle.rect.x+pixel_size/2<=self.rect.x<paddle.rect.x+pixel_size*3/2:
                 self.speed=[-1,-1]
+                return True
             if paddle.rect.x+pixel_size*3/2<=self.rect.x<paddle.rect.x+pixel_size*5/2:
                 self.speed=[-0,-1]
+                return True
             if paddle.rect.x+pixel_size*5/2<=self.rect.x<paddle.rect.x+pixel_size*7/2:
                 self.speed=[1,-1]
+                return True
             if paddle.rect.x+pixel_size*7/2<=self.rect.x<paddle.rect.x+pixel_size*5:
                 self.speed=[2,-1]
+                return True
+        return False
 
     def collision_bricks(self, bricks: list):
         collisions_x = [0, 0] # left, right
