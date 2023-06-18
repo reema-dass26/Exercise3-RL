@@ -2,6 +2,9 @@ import pygame
 from paddle import Paddle
 from ball import Ball
 from brick import Brick
+import os
+import sys
+import time
 
 def create_bricks(layers, brick_size, bricks_per_layer):
     bricks = []
@@ -44,6 +47,16 @@ all_sprites_list.add(bricks)
 #We want to play
 play=True
 
+
+# Variables for time tracking
+start_time = time.time()
+last_time = start_time
+
+#Function for restarting if game ends
+def restart_program():
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
+
 #Define a clock
 clock = pygame.time.Clock()
 fps = 120
@@ -65,23 +78,41 @@ while(play):
     screen.fill(WHITE)
 
 
+    #Recognizes break successfully
+    tobreak=False
+    tobreak=ball.check_over(size[1],bricks)
+    if tobreak:
+        elapsed_time = int(current_time - start_time)
+        print(f"The game took {elapsed_time} seconds to complete!")
+        pygame.time.delay(3000)
+        #Restarts the program after time delay
+        restart_program()
 
-   
+    # Calculate current time
+    current_time = time.time()
+    
+    # Check if 10 seconds have passed since the last time print
+    if current_time - last_time >= 10:
+        print(f"The length of the bricks list is {len(bricks)}")
+        elapsed_time = int(current_time - start_time)
+        print("Elapsed time: ", elapsed_time, " seconds")
+        last_time = current_time
 
     # Move paddle
     # Moving the paddle when the user uses the arrow keys
 
     ball.reflect()
     ball.collision_bricks(bricks)
+    bricks = all_sprites_list.sprites()
     ball.collision_paddle(paddle)
     ball.move(ball.speed)
     paddle.move_x(paddle.speed)
     if paddle.collision_x():
         paddle.speed = 0
     
-    if ball.check_gameover():
-        play = False
-        break
+    #if ball.check_gameover():
+    #    play = False
+    #    break
 
     all_sprites_list.update()
 

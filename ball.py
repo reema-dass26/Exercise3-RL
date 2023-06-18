@@ -2,6 +2,7 @@ import pygame
 from paddle import Paddle
 from brick import Brick
 from math import copysign
+import random
 
 BLACK = (0, 0, 0)
 
@@ -19,10 +20,13 @@ class Ball(pygame.sprite.Sprite):
         
         pygame.draw.rect(self.image, BLACK, [0, 0, width, height])
         self.rect = self.image.get_rect()
+
+        #Ball start in the middle of the screen
+        self.rect.x=screen_width/2
         
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.speed=[1, -1]
+        self.speed=[random.randint(-2, 2), -1]
             
         self.center_x()
         self.rect.y=screen_height // 2
@@ -39,6 +43,7 @@ class Ball(pygame.sprite.Sprite):
 
     #     if self.rect.x 
     
+    #Other implementation provided
     def check_gameover(self):
         return self.collision()[1] == 1
 
@@ -63,7 +68,7 @@ class Ball(pygame.sprite.Sprite):
     def collision_paddle(self, paddle: Paddle):
         ball_x_center = self.rect.x + self.rect.width / 2
 
-
+        #Describes collision logic with respect to the paddle
         if self.rect.y + self.rect.height >= paddle.rect.y:
             pixel_size= self.screen_width/15
             if paddle.rect.x-pixel_size<=self.rect.x<paddle.rect.x+pixel_size/2:
@@ -78,29 +83,45 @@ class Ball(pygame.sprite.Sprite):
                 self.speed=[2,-1]
 
     def collision_bricks(self, bricks: list):
-        collisions_x = [0, 0] # left, right
-        collisions_y = [0, 0] # top, bottom
-        for brick in bricks:
-            if self.rect.colliderect(brick.rect):
+        # collisions_x = [0, 0] # left, right
+        # collisions_y = [0, 0] # top, bottom
+        # for brick in bricks:
+        #     if self.rect.colliderect(brick.rect):
                 
-                if self.rect.x == brick.rect.x + brick.rect.width:
-                    collisions_x[0] += -1
-                if self.rect.x + self.rect.width == brick.rect.x:
-                    collisions_x[1] += 1
+        #         if self.rect.x == brick.rect.x + brick.rect.width:
+        #             collisions_x[0] += -1
+        #         if self.rect.x + self.rect.width == brick.rect.x:
+        #             collisions_x[1] += 1
 
-                if self.rect.y == brick.rect.y + brick.rect.height:
-                    collisions_y[1] += 1
-                if self.rect.y + self.rect.height == brick.rect.y:
-                    collisions_y[0] += -1
+        #         if self.rect.y == brick.rect.y + brick.rect.height:
+        #             collisions_y[1] += 1
+        #         if self.rect.y + self.rect.height == brick.rect.y:
+        #             collisions_y[0] += -1
 
-                brick.kill()
-                self.speed[1]*=-1
-        direction_x = sum(collisions_x)
-        direction_y = sum(collisions_y)
-        if direction_x:
-            self.speed[0] = copysign(self.speed[0], direction_x)
-        if direction_y:
-            self.speed[1] = copysign(self.speed[1], direction_y)
+        #         brick.kill()
+        #         self.speed[1]*=-1
+        # direction_x = sum(collisions_x)
+        # direction_y = sum(collisions_y)
+        # if direction_x:
+        #     self.speed[0] = copysign(self.speed[0], direction_x)
+        # if direction_y:
+        #     self.speed[1] = copysign(self.speed[1], direction_y)
+        for brick in bricks:
+            if self.rect.y == brick.rect.y + brick.rect.height:
+                if brick.rect.x - brick.rect.width/2 <= self.rect.x < brick.rect.x + brick.rect.width/2:
+                    brick.kill()
+                    self.speed[1]*=-1
+                    
+
+    def check_over(self,size_1,bricks):
+        #print(f"Size_1 is {size_1} and self.rect.y is {self.rect.y + self.rect.height}")
+        if self.rect.y + self.rect.height >= size_1-5:
+            print("Game is over!")
+            return True
+        if len(bricks)==0:
+            print("Game is finished successfully!")
+        else:
+            return False
 
     def reflect(self):
         collisions = self.collision()
