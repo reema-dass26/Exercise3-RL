@@ -83,34 +83,34 @@ class Ball(pygame.sprite.Sprite):
                 self.speed=[2,-1]
 
     def collision_bricks(self, bricks: list):
-        # collisions_x = [0, 0] # left, right
-        # collisions_y = [0, 0] # top, bottom
-        # for brick in bricks:
-        #     if self.rect.colliderect(brick.rect):
-                
-        #         if self.rect.x == brick.rect.x + brick.rect.width:
-        #             collisions_x[0] += -1
-        #         if self.rect.x + self.rect.width == brick.rect.x:
-        #             collisions_x[1] += 1
-
-        #         if self.rect.y == brick.rect.y + brick.rect.height:
-        #             collisions_y[1] += 1
-        #         if self.rect.y + self.rect.height == brick.rect.y:
-        #             collisions_y[0] += -1
-
-        #         brick.kill()
-        #         self.speed[1]*=-1
-        # direction_x = sum(collisions_x)
-        # direction_y = sum(collisions_y)
-        # if direction_x:
-        #     self.speed[0] = copysign(self.speed[0], direction_x)
-        # if direction_y:
-        #     self.speed[1] = copysign(self.speed[1], direction_y)
+        collisions_x = [0, 0] # left, right
+        collisions_y = [0, 0] # top, bottom
         for brick in bricks:
-            if self.rect.y == brick.rect.y + brick.rect.height:
-                if brick.rect.x - brick.rect.width/2 <= self.rect.x < brick.rect.x + brick.rect.width/2:
-                    brick.kill()
-                    self.speed[1]*=-1
+            if self.rect.colliderect(brick.rect):
+                
+                if self.rect.x == brick.rect.x + brick.rect.width:
+                    collisions_x[0] += -1
+                if self.rect.x + self.rect.width == brick.rect.x:
+                    collisions_x[1] += 1
+
+                if self.rect.y == brick.rect.y + brick.rect.height:
+                    collisions_y[1] += 1
+                if self.rect.y + self.rect.height == brick.rect.y:
+                    collisions_y[0] += -1
+
+                brick.kill()
+                self.speed[1]*=-1
+        direction_x = sum(collisions_x)
+        direction_y = sum(collisions_y)
+        if direction_x:
+            self.speed[0] = copysign(self.speed[0], direction_x)
+        if direction_y:
+            self.speed[1] = copysign(self.speed[1], direction_y)
+        # for brick in bricks:
+        #     if self.rect.y == brick.rect.y + brick.rect.height:
+        #         if brick.rect.x - brick.rect.width/2 <= self.rect.x < brick.rect.x + brick.rect.width/2:
+        #             brick.kill()
+        #             self.speed[1]*=-1
                     
 
     def check_over(self,size_1,bricks):
