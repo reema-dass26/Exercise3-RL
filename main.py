@@ -74,6 +74,7 @@ while not won:
                 paddle.update_speed()
             if event.type == pygame.QUIT:
                 play=False
+                won=True
         
         # --- Drawing code should go here
         # First, clear the screen be white 
