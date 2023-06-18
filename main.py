@@ -103,7 +103,8 @@ while(play):
 
     ball.reflect()
     ball.collision_bricks(bricks)
-    bricks = all_sprites_list.sprites()
+    #Return only bricks 
+    bricks = all_sprites_list.sprites()[2:]
     ball.collision_paddle(paddle)
     ball.move(ball.speed)
     paddle.move_x(paddle.speed)
