@@ -11,39 +11,37 @@ class Ball(pygame.sprite.Sprite):
     def __init__(self, width, height, screen_width, screen_height):
         # super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        
+
         # Create an image of the paddle
         self.image = pygame.Surface([width, height])
         self.image.fill(BLACK)
         # Scale the image to fit the grid cell size
-        #self.image = pygame.transform.scale(self.image, (pixel_scale, pixel_scale))
-        
+        # self.image = pygame.transform.scale(self.image, (pixel_scale, pixel_scale))
+
         pygame.draw.rect(self.image, BLACK, [0, 0, width, height])
         self.rect = self.image.get_rect()
 
-        #Ball start in the middle of the screen
-        self.rect.x=screen_width/2
-        
+        # Ball start in the middle of the screen
+        self.rect.x = screen_width / 2
+
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.speed=[random.randint(-2, 2), -1]
-            
-        self.center_x()
-        self.rect.y=screen_height // 2
+        self.speed = [random.randint(-2, 2), -1]
 
-        
+        self.center_x()
+        self.rect.y = screen_height // 2
 
     # def collision_x(self):
     #     """
-    #     Returns 
-    #     -1 if the paddle touches the left border of the screen, 
-    #      1 if it touches the right, 
+    #     Returns
+    #     -1 if the paddle touches the left border of the screen,
+    #      1 if it touches the right,
     #      0 if neither.
     #     """
 
-    #     if self.rect.x 
-    
-    #Other implementation provided
+    #     if self.rect.x
+
+    # Other implementation provided
     def check_gameover(self):
         return self.collision()[1] == 1
 
@@ -68,32 +66,51 @@ class Ball(pygame.sprite.Sprite):
     def collision_paddle(self, paddle: Paddle):
         ball_x_center = self.rect.x + self.rect.width / 2
 
-        #Describes collision logic with respect to the paddle
+        # Describes collision logic with respect to the paddle
         if self.rect.y + self.rect.height >= paddle.rect.y:
-            pixel_size= self.screen_width/15
-            if paddle.rect.x-pixel_size<=self.rect.x<paddle.rect.x+pixel_size/2:
-                self.speed=[-2,-1]
+            pixel_size = self.screen_width / 15
+            if (
+                paddle.rect.x - pixel_size
+                <= self.rect.x
+                < paddle.rect.x + pixel_size / 2
+            ):
+                self.speed = [-2, -1]
                 return True
-            if paddle.rect.x+pixel_size/2<=self.rect.x<paddle.rect.x+pixel_size*3/2:
-                self.speed=[-1,-1]
+            if (
+                paddle.rect.x + pixel_size / 2
+                <= self.rect.x
+                < paddle.rect.x + pixel_size * 3 / 2
+            ):
+                self.speed = [-1, -1]
                 return True
-            if paddle.rect.x+pixel_size*3/2<=self.rect.x<paddle.rect.x+pixel_size*5/2:
-                self.speed=[-0,-1]
+            if (
+                paddle.rect.x + pixel_size * 3 / 2
+                <= self.rect.x
+                < paddle.rect.x + pixel_size * 5 / 2
+            ):
+                self.speed = [-0, -1]
                 return True
-            if paddle.rect.x+pixel_size*5/2<=self.rect.x<paddle.rect.x+pixel_size*7/2:
-                self.speed=[1,-1]
+            if (
+                paddle.rect.x + pixel_size * 5 / 2
+                <= self.rect.x
+                < paddle.rect.x + pixel_size * 7 / 2
+            ):
+                self.speed = [1, -1]
                 return True
-            if paddle.rect.x+pixel_size*7/2<=self.rect.x<paddle.rect.x+pixel_size*5:
-                self.speed=[2,-1]
+            if (
+                paddle.rect.x + pixel_size * 7 / 2
+                <= self.rect.x
+                < paddle.rect.x + pixel_size * 5
+            ):
+                self.speed = [2, -1]
                 return True
         return False
 
     def collision_bricks(self, bricks: list):
-        collisions_x = [0, 0] # left, right
-        collisions_y = [0, 0] # top, bottom
+        collisions_x = [0, 0]  # left, right
+        collisions_y = [0, 0]  # top, bottom
         for brick in bricks:
             if self.rect.colliderect(brick.rect):
-                
                 if self.rect.x == brick.rect.x + brick.rect.width:
                     collisions_x[0] += -1
                 if self.rect.x + self.rect.width == brick.rect.x:
@@ -105,7 +122,7 @@ class Ball(pygame.sprite.Sprite):
                     collisions_y[0] += -1
 
                 brick.kill()
-                self.speed[1]*=-1
+                self.speed[1] *= -1
         direction_x = sum(collisions_x)
         direction_y = sum(collisions_y)
         if direction_x:
@@ -117,14 +134,13 @@ class Ball(pygame.sprite.Sprite):
         #         if brick.rect.x - brick.rect.width/2 <= self.rect.x < brick.rect.x + brick.rect.width/2:
         #             brick.kill()
         #             self.speed[1]*=-1
-                    
 
-    def check_over(self,size_1,bricks):
-        #print(f"Size_1 is {size_1} and self.rect.y is {self.rect.y + self.rect.height}")
-        if self.rect.y + self.rect.height >= size_1-5:
+    def check_over(self, size_1, bricks):
+        # print(f"Size_1 is {size_1} and self.rect.y is {self.rect.y + self.rect.height}")
+        if self.rect.y + self.rect.height >= size_1 - 5:
             print("Game is over!")
             return True
-        if len(bricks)==0:
+        if len(bricks) == 0:
             print("Game is finished successfully!")
         else:
             return False
@@ -144,12 +160,16 @@ class Ball(pygame.sprite.Sprite):
         else:
             to_move = min(distance, screen_size - (element_pos + element_size))
         return to_move
-    
+
     def move_x(self, distance):
-        self.rect.x += self.move_generic(distance, self.rect.x, self.rect.width, self.screen_width)
+        self.rect.x += self.move_generic(
+            distance, self.rect.x, self.rect.width, self.screen_width
+        )
 
     def move_y(self, distance):
-        self.rect.y += self.move_generic(distance, self.rect.y, self.rect.height, self.screen_height)
+        self.rect.y += self.move_generic(
+            distance, self.rect.y, self.rect.height, self.screen_height
+        )
 
     def move(self, speed):
         self.move_x(speed[0])

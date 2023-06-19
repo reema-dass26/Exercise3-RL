@@ -2,23 +2,24 @@ from typing import Dict, List, Tuple, Optional
 import random
 import numpy as np
 
+
 class Agent:
     def __init__(self) -> None:
         self.state_action_pairs_rewards: Dict[
-            Tuple(int, int, Tuple[int, int], Tuple[int, int]), # State
+            Tuple(int, int, Tuple[int, int], Tuple[int, int]),  # State
             Dict[
-                int, # Action
-                List[int], # Rewards
-            ]
+                int,  # Action
+                List[int],  # Rewards
+            ],
         ] = {}
         self.points_per_brick: int = 100
         self.points_per_tick: int = -1
         self.points_per_bump: int = 50
         self.total_reward: int = -self.points_per_tick
-        
+
         self._tmp_bricks: Optional[int] = None
-    
-    def policy(self, state) -> int: # Returns action
+
+    def policy(self, state) -> int:  # Returns action
         if state in self.state_action_pairs_rewards:
             actions = self.state_action_pairs_rewards[state]
             print(actions)
@@ -40,10 +41,15 @@ class Agent:
         if self._tmp_bricks is None:
             self._tmp_bricks = len(bricks)
             return self.points_per_tick
-        
+
         bricks_destroyed = self._tmp_bricks - len(bricks)
         self._tmp_bricks = len(bricks)
-        return bricks_destroyed * self.points_per_brick + self.points_per_tick + paddle_bumps * self.points_per_bump
+        return (
+            bricks_destroyed * self.points_per_brick
+            + self.points_per_tick
+            + paddle_bumps * self.points_per_bump
+        )
+
 
 # State:
 # (
