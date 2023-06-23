@@ -12,9 +12,9 @@ class Agent:
                 List[int],  # Rewards
             ],
         ] = {}
-        self.points_per_brick: int = 100
+        self.points_per_brick: int = 0
         self.points_per_tick: int = -1
-        self.points_per_bump: int = 50
+        self.points_per_bump: int = 50000
         self.total_reward: int = -self.points_per_tick
 
         self._tmp_bricks: Optional[int] = None
@@ -23,7 +23,10 @@ class Agent:
         if state in self.state_action_pairs_rewards:
             actions = self.state_action_pairs_rewards[state]
             print(actions)
+            epsilon=0.01
             if actions:
+                if (1000*epsilon<=np.random.randint(1,1000)):
+                    return random.choice([-1, 0, 1])
                 best_action = max(actions, key=lambda x: np.mean(actions[x]))
                 return best_action
         return random.choice([-1, 0, 1])

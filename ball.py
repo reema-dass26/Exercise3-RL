@@ -3,6 +3,7 @@ from paddle import Paddle
 from brick import Brick
 from math import copysign
 import random
+import time
 
 BLACK = (0, 0, 0)
 
@@ -27,6 +28,7 @@ class Ball(pygame.sprite.Sprite):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.speed = [random.randint(-2, 2), -1]
+        #self.speed = [1, -1]
 
         self.center_x()
         self.rect.y = screen_height // 2
@@ -137,11 +139,13 @@ class Ball(pygame.sprite.Sprite):
 
     def check_over(self, size_1, bricks):
         # print(f"Size_1 is {size_1} and self.rect.y is {self.rect.y + self.rect.height}")
-        if self.rect.y + self.rect.height >= size_1 - 5:
+        if self.rect.y + self.rect.height == size_1:
             print("Game is over!")
             return True
         if len(bricks) == 0:
             print("Game is finished successfully!")
+            time.sleep(5000)
+            return False
         else:
             return False
 

@@ -58,7 +58,7 @@ while not won:
 
     # Define a clock
     clock = pygame.time.Clock()
-    fps = 120
+    #fps = 200
     agent_wait_time = 10
     iteration = 0
     paddle_bumps: int = 0
@@ -100,7 +100,7 @@ while not won:
         # Recognizes break successfully
         tobreak = False
         tobreak = ball.check_over(board.size[1], bricks)
-        if tobreak and False:
+        if tobreak:
             elapsed_time = int(current_time - start_time)
             print(f"The game took {elapsed_time} seconds to complete!")
             # pygame.time.delay(3000)
@@ -172,7 +172,7 @@ while not won:
 
         # --- Limit to 60 frames per second
         iteration += 1
-        # clock.tick(fps)
+        #clock.tick(fps)
 
 
 pygame.quit()
