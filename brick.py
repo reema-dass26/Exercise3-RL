@@ -1,9 +1,10 @@
 import pygame
+import object
 
 BLACK = (0, 0, 0)
 
 
-class Brick(pygame.sprite.Sprite):
+class Brick(object.Object):
     def __init__(self, x, y, width, height, color=(0, 0, 0)):
         # super().__init__()
         pygame.sprite.Sprite.__init__(self)

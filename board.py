@@ -1,4 +1,5 @@
 import pygame
+import copy
 from typing import Tuple
 
 
@@ -7,10 +8,9 @@ class Board:
         self.size = size
         self.render_size = [pixel_scale * dimension for dimension in size]
         self.display = pygame.display
-        self.screen: pygame.display = pygame.display.set_mode(self.render_size)
+        self.screen = pygame.display.set_mode(self.render_size)
         self.surface: pygame.Surface = pygame.Surface(size)
 
     def render(self):
-        pygame.transform.scale(
-            self.surface, self.render_size, self.display.get_surface()
-        )
+        upscaled = pygame.transform.scale(self.surface.copy(), self.render_size)
+        self.screen.blit(upscaled, (0, 0))
