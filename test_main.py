@@ -124,7 +124,7 @@ def run_game(bricks):
                 print(f"The game took {elapsed_time} seconds to complete!")
                 # pygame.time.delay(3000)
                 play = False
-                break
+                #break
                 # Restarts the program after time delay
                 # restart_program()
 
