@@ -6,7 +6,7 @@ import numpy as np
 class Agent:
     def __init__(self) -> None:
         self.state_action_pairs_rewards: Dict[
-            Tuple(int, int, Tuple[int, int], Tuple[int, int]),  # State
+            Tuple[int, int, Tuple[int, int], Tuple[int, int]],  # State
             Dict[
                 int,  # Action
                 List[int],  # Rewards
@@ -19,16 +19,18 @@ class Agent:
 
         self._tmp_bricks: Optional[int] = None
 
+        self.last_speed: tuple[int, int] | None = None
+        self.bounces: list[tuple[int, int]] = []
+
     def policy(self, state) -> int:  # Returns action
         if state in self.state_action_pairs_rewards:
             actions = self.state_action_pairs_rewards[state]
             print(actions)
-            epsilon=0.01
+            epsilon = 0.01
             if actions:
-                if (1000*epsilon<=np.random.randint(1,1000)):
-                    return random.choice([-1, 0, 1])
-                best_action = max(actions, key=lambda x: np.mean(actions[x]))
-                return best_action
+                if 1000 * epsilon <= np.random.randint(1, 1000):
+                    best_action = max(actions, key=lambda x: np.mean(actions[x]))
+                    return best_action
         return random.choice([-1, 0, 1])
 
     def remember_reward(self, state, action, reward):
@@ -52,6 +54,15 @@ class Agent:
             + self.points_per_tick
             + paddle_bumps * self.points_per_bump
         )
+
+    def remember_bounce(self, pos: tuple[int, int]):
+        self.bounces.append(pos)
+
+    def speed_change(self, speed: tuple[int, int]):
+        if speed != self.last_speed:
+            self.last_speed = speed
+            return True
+        return False
 
 
 # State:
