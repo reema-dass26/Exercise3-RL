@@ -1,0 +1,384 @@
+import pygame
+from paddle import Paddle
+from ball import Ball
+from brick import Brick
+from mc import Agent
+from board import Board
+import pygame_menu
+import os
+import sys
+import time
+import random
+
+# # Global variable
+# bricks_for_layout = []
+
+pygame.init()
+WHITE = (255, 255, 255)
+
+DEBUG = False
+
+
+def create_bricks(shape: list[list[int]], brick_size: tuple[int, int] = (3, 1)):
+    bricks = []
+
+    if shape == 'rectangle':
+        shape: list[list[int]] = [
+        [1, 1, 1, 1, 1,],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+    ]
+    elif shape == 'triangle':
+        shape: list[list[int]] = [
+        [1, 1, 1, 1, 1,],
+        [0, 1, 1, 1, 0],
+        [0, 0, 1, 0, 0],
+    ]
+    elif shape == 'hollow_triangle':
+        shape: list[list[int]] = [
+        [1, 0, 0, 0, 1,],
+        [0, 1, 0, 1, 0],
+        [0, 0, 1, 0, 0],
+    ]
+    for r_index, row in enumerate(shape):
+        for c_index, set_brick in enumerate(row):
+            if set_brick:
+                x = c_index * brick_size[0]
+                y = r_index * brick_size[1]
+                brick = Brick(x, y, *brick_size)
+                bricks.append(brick)
+    return pygame.sprite.Group(bricks)
+
+
+def run_game(shape):
+    # Variables for time tracking
+    start_time = time.time()
+    last_time = start_time
+    won = False
+    shape=shape
+    while not won:
+        # List with all sprite objects
+        all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
+
+        # Code for putting in the paddle
+        paddle = Paddle(5, 1, *board.size)
+        ball = Ball(0, 0, 1, 1, None, *board.size)
+
+        bricks = create_bricks(shape)
+
+        all_sprites_list.add(paddle)
+        all_sprites_list.add(ball)
+        all_sprites_list.add(bricks)
+        # We want to play
+        play = True
+
+        # Define a clock
+        clock = pygame.time.Clock()
+        fps = 20
+        agent_wait_time = 10
+        iteration = 0
+        paddle_bumps: int = 0
+        current_time = time.time()
+
+        while play:
+            for event in pygame.event.get():
+                # Manual control
+                # if event.type == pygame.KEYDOWN:
+                #     # keys = pygame.key.get_pressed()
+                #     # if keys[pygame.K_LEFT]:
+                #     #     paddle.speed-=1
+                #     # if keys[pygame.K_RIGHT]:
+                #     #     paddle.speed+=1
+                #     # paddle.update_speed()
+                #     paddle.speed += random.choice([-1, 0, 1])
+
+                if event.type == pygame.QUIT:
+                    play = False
+                    won = True
+
+            if not iteration % agent_wait_time:
+                # Agent:
+
+                state = (
+                    paddle.rect.x,  # Paddle position
+                    paddle.speed,  # Paddle speed
+                    (ball.rect.x, ball.rect.y),  # Ball position
+                    tuple(ball.speed),  # Ball speed
+                )
+
+                action = agent.policy(state)
+                paddle.speed += action
+                paddle.update_speed()
+
+            # --- Drawing code should go here
+            # First, clear the screen be white
+            board.surface.fill(WHITE)
+
+            # Recognizes break successfully
+            tobreak = False
+            tobreak = ball.check_over(board.size[1], bricks)
+            if tobreak:
+                elapsed_time = int(current_time - start_time)
+                print(f"The game took {elapsed_time} seconds to complete!")
+                # pygame.time.delay(3000)
+                play = False
+                break
+                # Restarts the program after time delay
+                # restart_program()
+
+            # Calculate current time
+            current_time = time.time()
+
+            # Check if 10 seconds have passed since the last time print
+            if current_time - last_time >= 10:
+                print(f"The length of the bricks list is {len(bricks)}")
+                elapsed_time = int(current_time - start_time)
+                print("Elapsed time: ", elapsed_time, " seconds")
+                last_time = current_time
+
+            # Move paddle
+            # Moving the paddle when the user uses the arrow keys
+
+            ball.reflect(bricks)
+
+            if DEBUG:
+                print(ball.speed)
+
+            # Return only bricks
+            # bricks = all_sprites_list.sprites()[2:]
+            if ball.paddle_collision(paddle):
+                paddle_bumps += 1
+            ball.move()
+            paddle.move_x(paddle.speed)
+            if paddle.collision_x():
+                paddle.speed = 0
+
+            # if ball.check_gameover():
+            #    play = False
+            #    break
+
+            all_sprites_list.update()
+
+            # Now let's draw all the sprites in one go. (For now we only have 2 sprites!)
+            all_sprites_list.draw(board.surface)
+
+            # Draw the grid lines
+            # for x in range(0, size[0], pixel_scale):
+            #     pygame.draw.line(screen, ORANGE, (x, 0), (x, size[1]))
+            # for y in range(0, size[1], pixel_scale):
+            #     pygame.draw.line(screen, ORANGE, (0, y), (size[0], y))
+
+            # pygame.draw.line(screen, ORANGE, [0, 38], [800, 38], 2)
+
+            if not iteration % agent_wait_time:
+                # Agent rewards
+                reward = agent.get_score(bricks, paddle_bumps)
+                paddle_bumps = 0
+                agent.remember_reward(state, action, reward)
+                print(
+                    f"""
+                    Agent:
+                    state:        {state}
+                    action:       {action}
+                    reward:       {reward}
+                    total_reward: {agent.total_reward}
+                    bricks:       {len(bricks)}
+                    """
+                )
+
+            # --- Go ahead and update the screen with what we've drawn.
+            board.render()
+            board.display.flip()
+
+                # --- Limit to 60 frames per second
+            iteration += 1
+            # clock.tick(20)           
+
+
+
+
+# Define layout selection functions
+def layout1_function():
+    shape='rectangle'
+    print("Layout 1 selected")
+    # bricks_for_layout = create_bricks(shape)
+    run_game(shape)
+
+def layout2_function():
+    shape='triangle'
+    print("Layout 2 selected")
+    # bricks_for_layout = create_bricks(shape)
+    run_game(shape)
+
+
+def layout3_function():
+    shape='hollow_triangle'
+    print("Layout 3 selected")
+    # bricks_for_layout = create_bricks(shape)
+    run_game(shape)
+
+
+board: Board = Board()
+board.display.set_caption("Breakout Game")
+agent = Agent()
+
+menu = pygame_menu.Menu("Select Game Layout!!", 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+
+
+
+# Add layout options
+menu.add.button("Rectangle", layout1_function)
+menu.add.button("Triangle", layout2_function)
+menu.add.button("Hollow Triangle", layout3_function)
+menu.add.button("Exit", pygame_menu.events.EXIT)
+
+
+running = True
+while running:
+    # Process events
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Update menu
+    menu.mainloop(board.screen, disable_loop=True)
+
+    board.display.flip()
+
+# won = False
+# while not won:
+#     # List with all sprite objects
+#     all_sprites_list = pygame.sprite.Group()
+
+#     # Code for putting in the paddle
+#     paddle = Paddle(5, 1, *board.size)
+#     ball = Ball(1, 1, *board.size)
+
+
+#     all_sprites_list.add(paddle)
+#     all_sprites_list.add(ball)
+#     all_sprites_list.add(bricks_for_layout)
+#     # We want to play
+#     play = True
+
+#     # Define a clock
+#     clock = pygame.time.Clock()
+#     #fps = 200
+#     agent_wait_time = 10
+#     iteration = 0
+#     paddle_bumps: int = 0
+#     current_time = time.time()
+#     while play:
+#         for event in pygame.event.get():
+#             # Manual control
+#             # if event.type == pygame.KEYDOWN:
+#             #     # keys = pygame.key.get_pressed()
+#             #     # if keys[pygame.K_LEFT]:
+#             #     #     paddle.speed-=1
+#             #     # if keys[pygame.K_RIGHT]:
+#             #     #     paddle.speed+=1
+#             #     # paddle.update_speed()
+#             #     paddle.speed += random.choice([-1, 0, 1])
+
+#             if event.type == pygame.QUIT:
+#                 play = False
+#                 won = True
+
+#         if not iteration % agent_wait_time:
+#             # Agent:
+
+#             state = (
+#                 paddle.rect.x,  # Paddle position
+#                 paddle.speed,  # Paddle speed
+#                 (ball.rect.x, ball.rect.y),  # Ball position
+#                 tuple(ball.speed),  # Ball speed
+#             )
+
+#             action = agent.policy(state)
+#             paddle.speed += action
+#             paddle.update_speed()
+
+#         # --- Drawing code should go here
+#         # First, clear the screen be white
+#         board.surface.fill(WHITE)
+
+#         # Recognizes break successfully
+#         tobreak = False
+#         tobreak = ball.check_over(board.size[1], bricks)
+#         if tobreak:
+#             elapsed_time = int(current_time - start_time)
+#             print(f"The game took {elapsed_time} seconds to complete!")
+#             # pygame.time.delay(3000)
+#             play = False
+#             break
+#             # Restarts the program after time delay
+#             # restart_program()
+
+#         # Calculate current time
+#         current_time = time.time()
+
+#         # Check if 10 seconds have passed since the last time print
+#         if current_time - last_time >= 10:
+#             print(f"The length of the bricks list is {len(bricks)}")
+#             elapsed_time = int(current_time - start_time)
+#             print("Elapsed time: ", elapsed_time, " seconds")
+#             last_time = current_time
+
+#         # Move paddle
+#         # Moving the paddle when the user uses the arrow keys
+
+#         ball.reflect()
+#         ball.collision_bricks(bricks)
+#         # Return only bricks
+#         # bricks = all_sprites_list.sprites()[2:]
+#         if ball.collision_paddle(paddle):
+#             paddle_bumps += 1
+#         ball.move(ball.speed)
+#         paddle.move_x(paddle.speed)
+#         if paddle.collision_x():
+#             paddle.speed = 0
+
+#         # if ball.check_gameover():
+#         #    play = False
+#         #    break
+
+#         all_sprites_list.update()
+
+#         # Now let's draw all the sprites in one go. (For now we only have 2 sprites!)
+#         all_sprites_list.draw(board.surface)
+
+#         # Draw the grid lines
+#         # for x in range(0, size[0], pixel_scale):
+#         #     pygame.draw.line(screen, ORANGE, (x, 0), (x, size[1]))
+#         # for y in range(0, size[1], pixel_scale):
+#         #     pygame.draw.line(screen, ORANGE, (0, y), (size[0], y))
+
+#         # pygame.draw.line(screen, ORANGE, [0, 38], [800, 38], 2)
+
+#         if not iteration % agent_wait_time:
+#             # Agent rewards
+#             reward = agent.get_score(bricks, paddle_bumps)
+#             paddle_bumps = 0
+#             agent.remember_reward(state, action, reward)
+#             print(
+#                 f"""
+#                 Agent:
+#                 state:        {state}
+#                 action:       {action}
+#                 reward:       {reward}
+#                 total_reward: {agent.total_reward}
+#                 bricks:       {len(bricks)}
+#                 """
+#             )
+
+#         # --- Go ahead and update the screen with what we've drawn.
+#         board.render()
+#         board.display.flip()
+
+#         # --- Limit to 60 frames per second
+#         iteration += 1
+#         #clock.tick(fps)
+
+
+pygame.quit()
