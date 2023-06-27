@@ -9,6 +9,8 @@ import sys
 import time
 import random
 
+DEBUG = False
+
 
 def create_bricks(layers, brick_size, bricks_per_layer):
     bricks = []
@@ -42,11 +44,11 @@ agent = Agent()
 won = False
 while not won:
     # List with all sprite objects
-    all_sprites_list = pygame.sprite.Group()
+    all_sprites_list: pygame.sprite.Group = pygame.sprite.Group()
 
     # Code for putting in the paddle
     paddle = Paddle(5, 1, *board.size)
-    ball = Ball(1, 1, *board.size)
+    ball = Ball(0, 0, 1, 1, None, *board.size)
 
     bricks = create_bricks(3, (3, 1), 5)
 
@@ -58,11 +60,12 @@ while not won:
 
     # Define a clock
     clock = pygame.time.Clock()
-    #fps = 200
+    fps = 20
     agent_wait_time = 10
     iteration = 0
     paddle_bumps: int = 0
     current_time = time.time()
+
     while play:
         for event in pygame.event.get():
             # Manual control
@@ -122,13 +125,16 @@ while not won:
         # Move paddle
         # Moving the paddle when the user uses the arrow keys
 
-        ball.reflect()
-        ball.collision_bricks(bricks)
+        ball.reflect(bricks)
+
+        if DEBUG:
+            print(ball.speed)
+
         # Return only bricks
         # bricks = all_sprites_list.sprites()[2:]
-        if ball.collision_paddle(paddle):
+        if ball.paddle_collision(paddle):
             paddle_bumps += 1
-        ball.move(ball.speed)
+        ball.move()
         paddle.move_x(paddle.speed)
         if paddle.collision_x():
             paddle.speed = 0
@@ -172,7 +178,7 @@ while not won:
 
         # --- Limit to 60 frames per second
         iteration += 1
-        #clock.tick(fps)
+        clock.tick(fps)
 
 
 pygame.quit()

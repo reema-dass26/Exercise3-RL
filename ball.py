@@ -4,34 +4,49 @@ from brick import Brick
 from math import copysign
 import random
 import time
+import movable
+from typing import NamedTuple
 
 BLACK = (0, 0, 0)
 
 
-class Ball(pygame.sprite.Sprite):
-    def __init__(self, width, height, screen_width, screen_height):
-        # super().__init__()
-        pygame.sprite.Sprite.__init__(self)
+class Walls(NamedTuple):
+    top: pygame.rect.RectType
+    right: pygame.rect.RectType
+    bottom: pygame.rect.RectType
+    left: pygame.rect.RectType
 
-        # Create an image of the paddle
-        self.image = pygame.Surface([width, height])
-        self.image.fill(BLACK)
-        # Scale the image to fit the grid cell size
-        # self.image = pygame.transform.scale(self.image, (pixel_scale, pixel_scale))
 
-        pygame.draw.rect(self.image, BLACK, [0, 0, width, height])
-        self.rect = self.image.get_rect()
-
-        # Ball start in the middle of the screen
-        self.rect.x = screen_width / 2
-
-        self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.speed = [random.randint(-2, 2), -1]
-        #self.speed = [1, -1]
-
+class Ball(movable.Movable):
+    def __init__(
+        self,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        speed: tuple[int, int] | int | None,
+        screen_width: int,
+        screen_height: int,
+        max_speed: int = 2,
+        color: tuple[int, int, int] = (255, 0, 0),
+        *groups
+    ) -> None:
+        if speed is None:
+            speed = (random.randint(-2, 2), -1)
+        super().__init__(
+            x,
+            y,
+            width,
+            height,
+            speed,
+            screen_width,
+            screen_height,
+            max_speed,
+            color,
+            *groups
+        )
         self.center_x()
-        self.rect.y = screen_height // 2
+        self.center_y()
 
     # def collision_x(self):
     #     """
@@ -45,29 +60,51 @@ class Ball(pygame.sprite.Sprite):
 
     # Other implementation provided
     def check_gameover(self):
-        return self.collision()[1] == 1
+        return self.wall_collision()[1] == 1
 
-    def center_x(self):
-        self.x = (self.screen_width - self.rect.width) // 2
+    def wall_collision(self):
+        next_step = self.next_step()
+        opposite_step = self.next_step([-v for v in self.speed])  # type: ignore
 
-    def collision(self):
-        collides = [0, 0]
+        x_collision = [False, False]  # next, opposite
+        y_collision = [False, False]
+        xy_collision = [False, False]
 
-        if not self.rect.x:
-            collides[0] = -1
-        if not self.screen_width - (self.rect.x + self.rect.width):
-            collides[0] = 1
+        walls: Walls = Walls(
+            pygame.rect.Rect(0, 0, self.screen_width, -1),  # Top
+            pygame.rect.Rect(
+                self.screen_width, 0, self.screen_width + 1, self.screen_height
+            ),  # Right
+            pygame.rect.Rect(
+                0, self.screen_height, self.screen_width, self.screen_height + 1
+            ),  # Bottom
+            pygame.rect.Rect(0, 0, -1, self.screen_height),  # Left
+        )
 
-        if not self.rect.y:
-            collides[1] = -1
-        if not self.screen_height - (self.rect.y + self.rect.height):
-            collides[1] = 1
+        # If a ball bounces off of two opposite walls at the same time,
+        # I'm giving up.
+        x_collision[0] = (
+            x_collision[0]
+            or walls.left.collidelist(next_step.x) >= 0
+            or walls.right.collidelist(next_step.x) >= 0
+        )
 
-        return collides
+        y_collision[0] = (
+            y_collision[0]
+            or walls.top.collidelist(next_step.y) >= 0
+            or walls.bottom.collidelist(next_step.y) >= 0
+        )
 
-    def collision_paddle(self, paddle: Paddle):
-        ball_x_center = self.rect.x + self.rect.width / 2
+        xy_collision[0] = xy_collision[0] or (
+            walls.top.collidelist(next_step.xy) >= 0
+            or walls.right.collidelist(next_step.xy) >= 0
+            or walls.bottom.collidelist(next_step.xy) >= 0
+            or walls.left.collidelist(next_step.xy) >= 0
+        )
 
+        return x_collision, y_collision, xy_collision
+
+    def paddle_collision(self, paddle: Paddle):
         # Describes collision logic with respect to the paddle
         if self.rect.y + self.rect.height >= paddle.rect.y:
             pixel_size = self.screen_width / 15
@@ -76,66 +113,75 @@ class Ball(pygame.sprite.Sprite):
                 <= self.rect.x
                 < paddle.rect.x + pixel_size / 2
             ):
-                self.speed = [-2, -1]
+                self.set_speed((-2, -1))
                 return True
             if (
                 paddle.rect.x + pixel_size / 2
                 <= self.rect.x
                 < paddle.rect.x + pixel_size * 3 / 2
             ):
-                self.speed = [-1, -1]
+                self.set_speed((-1, -1))
                 return True
             if (
                 paddle.rect.x + pixel_size * 3 / 2
                 <= self.rect.x
                 < paddle.rect.x + pixel_size * 5 / 2
             ):
-                self.speed = [-0, -1]
+                self.set_speed((-0, -1))
                 return True
             if (
                 paddle.rect.x + pixel_size * 5 / 2
                 <= self.rect.x
                 < paddle.rect.x + pixel_size * 7 / 2
             ):
-                self.speed = [1, -1]
+                self.set_speed((1, -1))
                 return True
             if (
                 paddle.rect.x + pixel_size * 7 / 2
                 <= self.rect.x
                 < paddle.rect.x + pixel_size * 5
             ):
-                self.speed = [2, -1]
+                self.set_speed((2, -1))
                 return True
         return False
 
-    def collision_bricks(self, bricks: list):
-        collisions_x = [0, 0]  # left, right
-        collisions_y = [0, 0]  # top, bottom
-        for brick in bricks:
-            if self.rect.colliderect(brick.rect):
-                if self.rect.x == brick.rect.x + brick.rect.width:
-                    collisions_x[0] += -1
-                if self.rect.x + self.rect.width == brick.rect.x:
-                    collisions_x[1] += 1
+    def brick_collision(
+        self,
+        objects: list[Brick],
+        wall_collisions: tuple[list[bool], list[bool], list[bool]] = (
+            [False, False],
+            [False, False],
+            [False, False],
+        ),
+    ):
+        next_step = self.next_step()
+        opposite_step = self.next_step([-v for v in self.speed])  # type: ignore
 
-                if self.rect.y == brick.rect.y + brick.rect.height:
-                    collisions_y[1] += 1
-                if self.rect.y + self.rect.height == brick.rect.y:
-                    collisions_y[0] += -1
+        x_collision, y_collision, xy_collision = wall_collisions
 
-                brick.kill()
-                self.speed[1] *= -1
-        direction_x = sum(collisions_x)
-        direction_y = sum(collisions_y)
-        if direction_x:
-            self.speed[0] = copysign(self.speed[0], direction_x)
-        if direction_y:
-            self.speed[1] = copysign(self.speed[1], direction_y)
-        # for brick in bricks:
-        #     if self.rect.y == brick.rect.y + brick.rect.height:
-        #         if brick.rect.x - brick.rect.width/2 <= self.rect.x < brick.rect.x + brick.rect.width/2:
-        #             brick.kill()
-        #             self.speed[1]*=-1
+        for o in objects:
+            if not o.alive():
+                continue
+            r = o.rect
+            if r.collidelist([*next_step.x, *next_step.y, *next_step.xy]) >= 0:
+                o.kill()
+            x_collision[0] = x_collision[0] or r.collidelist(next_step.x) >= 0
+            y_collision[0] = y_collision[0] or r.collidelist(next_step.y) >= 0
+            xy_collision[0] = xy_collision[0] or r.collidelist(next_step.xy) >= 0
+
+            x_collision[1] = x_collision[1] or r.collidelist(opposite_step.x) >= 0
+            y_collision[1] = y_collision[1] or r.collidelist(opposite_step.y) >= 0
+            xy_collision[1] = xy_collision[1] or r.collidelist(opposite_step.xy) >= 0
+
+            # Kill opposite brick(s) if collision in speed direction occurred.
+            if (
+                (x_collision[0] and r.collidelist(opposite_step.x) >= 0)
+                or (y_collision[0] and r.collidelist(opposite_step.y) >= 0)
+                or (xy_collision[0] and r.collidelist(opposite_step.xy) >= 0)
+            ):
+                o.kill()
+
+        return x_collision, y_collision, xy_collision
 
     def check_over(self, size_1, bricks):
         # print(f"Size_1 is {size_1} and self.rect.y is {self.rect.y + self.rect.height}")
@@ -149,32 +195,28 @@ class Ball(pygame.sprite.Sprite):
         else:
             return False
 
-    def reflect(self):
-        collisions = self.collision()
-        if collisions[0]:
-            self.speed[0] *= -1
+    def reflect(self, bricks):
+        wall_collisions = self.wall_collision()
+        brick_collisions = self.brick_collision(bricks, wall_collisions=wall_collisions)
 
-        if collisions[1]:
-            self.speed[1] *= -1
+        reflections = [1, 1]  # x y
 
-    def move_generic(self, distance, element_pos, element_size, screen_size) -> int:
-        to_move = 0
-        if distance < 0:
-            to_move = -min(-distance, element_pos)
+        if brick_collisions[2][0] and not (
+            brick_collisions[0][0] or brick_collisions[1][0]
+        ):  # X Y collision
+            reflections = [-1, -1]  # This overrides everything else
+            # There can be no collision in the other direction, as the ball
+            # came from there
         else:
-            to_move = min(distance, screen_size - (element_pos + element_size))
-        return to_move
+            if brick_collisions[0][0]:  # X
+                if brick_collisions[0][1]:  # Bounced on both sides
+                    reflections[0] = 0
+                else:  # Bounces off
+                    reflections[0] = -1
+            if brick_collisions[1][0]:  # Y
+                if brick_collisions[1][1]:  # Bounced on both sides
+                    reflections[1] = 0
+                else:  # Bounces off
+                    reflections[1] = -1
 
-    def move_x(self, distance):
-        self.rect.x += self.move_generic(
-            distance, self.rect.x, self.rect.width, self.screen_width
-        )
-
-    def move_y(self, distance):
-        self.rect.y += self.move_generic(
-            distance, self.rect.y, self.rect.height, self.screen_height
-        )
-
-    def move(self, speed):
-        self.move_x(speed[0])
-        self.move_y(speed[1])
+        self.set_speed((self.speed[0] * reflections[0], self.speed[1] * reflections[1]))
