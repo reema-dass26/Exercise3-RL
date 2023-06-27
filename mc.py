@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple, Optional
 import random
 import numpy as np
+from collections import deque
 
 
 class Agent:
@@ -12,25 +13,31 @@ class Agent:
                 List[int],  # Rewards
             ],
         ] = {}
+
         self.points_per_brick: int = 0
         self.points_per_tick: int = -1
-        self.points_per_bump: int = 50000
-        self.total_reward: int = -self.points_per_tick
+        self.points_per_bump: int = 50
+        self.total_reward: int = 0
 
         self._tmp_bricks: Optional[int] = None
 
         self.last_speed: tuple[int, int] | None = None
         self.bounces: list[tuple[int, int]] = []
+        self.last_entries= deque(maxlen=10)
 
     def policy(self, state) -> int:  # Returns action
         if state in self.state_action_pairs_rewards:
             actions = self.state_action_pairs_rewards[state]
             print(actions)
-            epsilon = 0.01
+            epsilon = 0.1
             if actions:
                 if 1000 * epsilon <= np.random.randint(1, 1000):
+                    # if(actions not in  self.state_action_pairs_rewards[state]):
+                    #     return random.choice([-1, 0, 1])
                     best_action = max(actions, key=lambda x: np.mean(actions[x]))
+                    print("Greedy choice!")
                     return best_action
+        print("Random choice!")
         return random.choice([-1, 0, 1])
 
     def remember_reward(self, state, action, reward):
@@ -42,15 +49,13 @@ class Agent:
             self.state_action_pairs_rewards[state][action] = []
         self.state_action_pairs_rewards[state][action].append(reward)
 
-    def get_score(self, bricks, paddle_bumps: int):
-        if self._tmp_bricks is None:
-            self._tmp_bricks = len(bricks)
-            return self.points_per_tick
+    def update(self,state,action):
+        self.last_entries.append((state,action))
+    
 
-        bricks_destroyed = self._tmp_bricks - len(bricks)
-        self._tmp_bricks = len(bricks)
+
+    def get_score(self, paddle_bumps: int):
         return (
-            bricks_destroyed * self.points_per_brick
             + self.points_per_tick
             + paddle_bumps * self.points_per_bump
         )
