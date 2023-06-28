@@ -97,21 +97,37 @@ class Agent:
         return False
 
     def render_bounces(self, canvas: pygame.SurfaceType, scale_factor: int):
-        cmap = matplotlib.cm.get_cmap("hsv")
+        cmap = matplotlib.cm.get_cmap("viridis")
         n_paddle_bounces: int = len(self.paddle_bounces)
         color_index: float = 0.0
         color: tuple[int, int, int, int] = tuple(
             (int(c * 255) for c in cmap(color_index))
         )  # type: ignore
 
+        print(f"Bounces: {len(self.bounces)}")
+        print(f"Paddle bounces: {len(self.paddle_bounces)}")
+
+        canvas.fill((255, 255, 255))
+
+        for x in range(canvas.get_width()):
+            for y in range(canvas.get_height()):
+                if not x % scale_factor and not y % scale_factor:
+                    canvas.set_at((x, y), (0,0,0))
+
+
         for index, bounce in enumerate(self.bounces):
             if not index:
                 continue
 
-            if index in self.paddle_bounces:
-                color_index += 1 / n_paddle_bounces
-                print(color_index)
-                color = tuple((int(c * 255) for c in cmap(color_index)))  # type: ignore
+            # if index in self.paddle_bounces:
+            #     color_index += 1 / n_paddle_bounces
+            #     print(color_index)
+            #     color = tuple((int(c * 255) for c in cmap(color_index)))  # type: ignore
+
+            color_index += 1 / len(self.bounces)
+            color = tuple((int(c * 255) for c in cmap(color_index)))  # type: ignore
+
+            print(color_index)
 
             prev_bounce: tuple[int, int] = self.bounces[index - 1]
             start_pos: tuple[int, int] = (
