@@ -23,7 +23,8 @@ def create_bricks(shape: str, brick_size: tuple[int, int] = (3, 1)):
 
     if shape == 'rectangle':
         shape: list[list[int]] = [
-        [0, 0, 0, 1, 0,],
+        [1,1 ,1, 1, 1],
+        # [1,1 ,1, 1, 1],
         # [1, 1, 1, 1, 1],
         # [1, 1, 1, 1, 1],
     ]
@@ -37,7 +38,7 @@ def create_bricks(shape: str, brick_size: tuple[int, int] = (3, 1)):
         shape: list[list[int]] = [
         [1, 0, 0, 0, 1,],
         [0, 1, 0, 1, 0],
-        [0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0],
     ]
     for r_index, row in enumerate(shape):
         for c_index, set_brick in enumerate(row):
@@ -157,8 +158,8 @@ def run_game(shape):
              # Move paddle
         # Moving the paddle when the user uses the arrow keys
 
-            if DEBUG:
-                print(ball.speed)
+            # if DEBUG:
+                # print(ball.speed)
 
             # Return only bricks
             # bricks = all_sprites_list.sprites()[2:]
@@ -188,7 +189,7 @@ def run_game(shape):
 
             if not iteration % agent_wait_time:
                 # Agent rewards
-                reward = agent.get_score(bricks, paddle_bumps)
+                reward = agent.get_score(bricks, paddle_bumps,lost_count)
                 paddle_bumps = 0
                 agent.remember_reward(state, action, reward)
                 print(
@@ -210,7 +211,7 @@ def run_game(shape):
 
             # --- Limit to 60 frames per second
             iteration += 1
-            clock.tick(30)           
+            # clock.tick(30)           
 
 
 

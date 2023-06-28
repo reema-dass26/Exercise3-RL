@@ -14,10 +14,11 @@ class Agent:
                 List[int],  # Rewards
             ],
         ] = {}
-        self.points_per_brick: int = 0
-        self.points_per_tick: int = -1
-        self.points_per_bump: int = 50000
+        self.points_per_brick: int = 40
+        self.points_per_tick: int = -0.1
+        self.points_per_bump: int = 50
         self.total_reward: int = -self.points_per_tick
+        self.lost_count: int = -1
 
         self._tmp_bricks: Optional[int] = None
 
@@ -25,16 +26,36 @@ class Agent:
         self.bounces: list[tuple[int, int]] = []
         self.paddle_bounces: list[int] = []
 
-    def policy(self, state) -> int:  # Returns action
+    # def policy(self, state) -> int:  # Returns action
+    #     if state in self.state_action_pairs_rewards:
+    #         actions = self.state_action_pairs_rewards[state]
+    #         print(actions)
+    #         epsilon = 0.01
+    #         if actions:
+    #             if 1000 * epsilon <= np.random.randint(1, 1000):
+    #                 best_action = max(actions, key=lambda x: np.mean(actions[x]))
+    #                 return best_action
+    # #     return random.choice([-1, 0, 1])
+    
+    def policy(self, state):
         if state in self.state_action_pairs_rewards:
             actions = self.state_action_pairs_rewards[state]
-            print(actions)
-            epsilon = 0.01
+            epsilon = 0.5
             if actions:
-                if 1000 * epsilon <= np.random.randint(1, 1000):
+                if random.random() > epsilon:
                     best_action = max(actions, key=lambda x: np.mean(actions[x]))
                     return best_action
         return random.choice([-1, 0, 1])
+
+
+
+    # def policy(self, state) -> int:
+    #     if state in self.state_action_pairs_rewards:
+    #         actions = self.state_action_pairs_rewards[state]
+    #         if actions:
+    #             best_action = max(actions, key=lambda x: np.mean(actions[x]))
+    #             return best_action
+    #     return random.choice([-1, 0, 1])
 
     def remember_reward(self, state, action, reward):
         self.total_reward += reward
@@ -45,7 +66,7 @@ class Agent:
             self.state_action_pairs_rewards[state][action] = []
         self.state_action_pairs_rewards[state][action].append(reward)
 
-    def get_score(self, bricks, paddle_bumps: int):
+    def get_score(self, bricks, paddle_bumps: int,lost_count:int):
         if self._tmp_bricks is None:
             self._tmp_bricks = len(bricks)
             return self.points_per_tick
@@ -56,6 +77,7 @@ class Agent:
             bricks_destroyed * self.points_per_brick
             + self.points_per_tick
             + paddle_bumps * self.points_per_bump
+            + lost_count * self.lost_count
         )
 
     def reset_graph(self):
