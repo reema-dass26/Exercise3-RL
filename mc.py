@@ -3,7 +3,20 @@ import random
 import numpy as np
 import pygame
 import matplotlib
+import math
 
+def get_triangle(o_x: int, o_y: int, t_x: int, t_y: int, arrow_radius: float = 2.0):
+    line_angle: float = math.atan2(t_y - o_y, t_x - o_x)
+    arrow_angle: float = math.pi / 2
+    arrow_radius: float = arrow_radius
+    x_offset = arrow_radius * math.cos(line_angle + arrow_angle)
+    y_offset = arrow_radius * math.sin(line_angle + arrow_angle)
+
+    origin_pos = (int(o_x + x_offset), int(o_y + y_offset))
+    origin_neg = (int(o_x - x_offset), int(o_y - y_offset))
+    target = (t_x, t_y)
+
+    return origin_pos, origin_neg, target
 
 class Agent:
     def __init__(self) -> None:
@@ -158,12 +171,10 @@ class Agent:
                 bounce[0] * scale_factor + scale_factor // 2,  # X center
                 bounce[1] * scale_factor + scale_factor // 2,  # Y center
             )
-            pygame.draw.aaline(
-                canvas,
-                color,
-                start_pos,
-                end_pos,
-            )
+            arrow = get_triangle(*start_pos, *end_pos)
+            pygame.draw.aalines(canvas, color, True, arrow)
+        pygame.draw.circle(canvas, (255,0,0), [c * scale_factor + scale_factor // 2 for c in self.bounces[0]], radius=10)
+        pygame.draw.circle(canvas, (0,255,0), [c * scale_factor + scale_factor // 2 for c in self.bounces[-1]], radius=10)
         pygame.image.save(canvas, "trace.png")
 
 

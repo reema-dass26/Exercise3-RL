@@ -92,7 +92,7 @@ def run_game(shape):
 
         # Define a clock
         clock = pygame.time.Clock()
-        fps = 60
+        fps = 6000
         agent_wait_time = 1
         iteration = 0
         paddle_bumps: int = 0
