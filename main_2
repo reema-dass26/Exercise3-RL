@@ -23,7 +23,7 @@ def create_bricks(shape: str, brick_size: tuple[int, int] = (3, 1)):
 
     if shape == 'rectangle':
         shape: list[list[int]] = [
-        [0, 0, 0, 1, 0,],
+        [0, 1, 0, 1, 0,],
         # [1, 1, 1, 1, 1],
         # [1, 1, 1, 1, 1],
     ]
@@ -129,6 +129,10 @@ def run_game(shape):
                 end_time = time.time()
                 exec_time=end_time - start_time
                 print('Execution time:', exec_time, 'seconds')
+                canvas = pygame.surface.Surface(board.render_size)
+                agent.render_bounces(
+                    canvas, board.render_size[0] // board.surface.get_width()
+                )
                 break
             if tobreak:
                 elapsed_time = int(current_time - start_time)
