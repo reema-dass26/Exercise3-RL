@@ -65,3 +65,6 @@ class Paddle(pygame.sprite.Sprite):
             self.speed = 2
         if self.speed < -2:
             self.speed = -2
+
+    def get_x_center(self):
+        return self.rect.x + (self.rect.width // 2)

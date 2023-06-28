@@ -32,15 +32,16 @@ def create_bricks(shape: str, brick_size: tuple[int, int] = (3, 1)):
     ]
     elif shape == 'triangle':
         shape: list[list[int]] = [
-        [0, 1, 1, 1, 0,],
+        [0, 0, 1, 0, 0,],
         [0, 0, 1, 0, 0],
-        [0, 0, 1, 0, 0],
+        [0, 1, 0, 1, 0],
+        [1, 0, 0, 0, 1],
     ]
     elif shape == 'hollow_triangle':
         shape: list[list[int]] = [
-        [1, 0, 0, 0, 1,],
+        [1, 0, 1, 0, 1],
         [0, 1, 0, 1, 0],
-        [0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0],
     ]
     for r_index, row in enumerate(shape):
         for c_index, set_brick in enumerate(row):
@@ -91,8 +92,8 @@ def run_game(shape):
 
         # Define a clock
         clock = pygame.time.Clock()
-        fps = 120
-        agent_wait_time = 10
+        fps = 60
+        agent_wait_time = 1
         iteration = 0
         paddle_bumps: int = 0
         current_time = time.time()
@@ -107,11 +108,17 @@ def run_game(shape):
             if not iteration % agent_wait_time:
 
                 # Agent:
+                # state = (
+                #     paddle.rect.x,  # Paddle position
+                #     paddle.speed,  # Paddle speed
+                #     (ball.rect.x, ball.rect.y),  # Ball position
+                #     tuple(ball.speed),  # Ball speed
+                # )
+
                 state = (
-                    paddle.rect.x,  # Paddle position
-                    paddle.speed,  # Paddle speed
-                    (ball.rect.x, ball.rect.y),  # Ball position
-                    tuple(ball.speed),  # Ball speed
+                    ball.get_x_center() - paddle.get_x_center() ,
+                    paddle.speed,
+                    ball.speed,
                 )
 
                 action = agent.policy(state)
@@ -195,7 +202,7 @@ def run_game(shape):
 
             if not iteration % agent_wait_time:
                 # Agent rewards
-                reward = agent.get_score(bricks, paddle_bumps,lost_count)
+                reward = agent.get_score(bricks, paddle_bumps,lost_count, ball.get_x_center() - paddle.get_x_center(), paddle.rect.width)
                 paddle_bumps = 0
                 agent.remember_reward(state, action, reward)
                 print(
@@ -217,7 +224,7 @@ def run_game(shape):
 
             # --- Limit to 60 frames per second
             iteration += 1
-            # clock.tick(30)           
+            clock.tick(fps)           
 
 
 

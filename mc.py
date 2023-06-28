@@ -19,8 +19,11 @@ class Agent:
         self.points_per_bump: int = 50
         self.total_reward: int = -self.points_per_tick
         self.lost_count: int = -1
+        self.same_position_points: int = 200
+        self.offset_change_points: int = 50
 
         self._tmp_bricks: Optional[int] = None
+        self._last_x_offset: int = None
 
         self.last_speed: tuple[int, int] | None = None
         self.bounces: list[tuple[int, int]] = []
@@ -66,18 +69,35 @@ class Agent:
             self.state_action_pairs_rewards[state][action] = []
         self.state_action_pairs_rewards[state][action].append(reward)
 
-    def get_score(self, bricks, paddle_bumps: int,lost_count:int):
-        if self._tmp_bricks is None:
+    def get_score(self, bricks, paddle_bumps: int,lost_count:int, x_offset: int, paddle_width: int):
+        if self._tmp_bricks is None or self._last_x_offset is None:
             self._tmp_bricks = len(bricks)
+            self._last_x_offset = x_offset
             return self.points_per_tick
 
+        offset_reward: int = 0
+        
+        same_x_position = abs(x_offset) < (paddle_width // 2) + 1
+        x_offset_change = abs(self._last_x_offset) - abs(x_offset)
+        
+
+        print(x_offset_change)
+
+        if same_x_position:
+            offset_reward += self.same_position_points
+        else:
+            offset_reward += self.offset_change_points * x_offset_change
+
         bricks_destroyed = self._tmp_bricks - len(bricks)
+        self._last_x_offset = x_offset
         self._tmp_bricks = len(bricks)
         return (
-            bricks_destroyed * self.points_per_brick
-            + self.points_per_tick
-            + paddle_bumps * self.points_per_bump
-            + lost_count * self.lost_count
+            # bricks_destroyed * self.points_per_brick
+            # + self.points_per_tick
+            # + paddle_bumps * self.points_per_bump
+            # + lost_count * self.lost_count
+            # + 
+            offset_reward
         )
 
     def reset_graph(self):

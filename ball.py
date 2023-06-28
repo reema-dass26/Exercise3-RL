@@ -220,3 +220,6 @@ class Ball(movable.Movable):
                     reflections[1] = -1
 
         self.set_speed((self.speed[0] * reflections[0], self.speed[1] * reflections[1]))
+
+    def get_x_center(self):
+        return self.rect.x + (self.rect.width // 2)
