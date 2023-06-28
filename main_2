@@ -123,7 +123,7 @@ def run_game(shape):
             tobreak = False
             tobreak = ball.check_over(board.size[1], bricks)
             if len(bricks) == 0:
-                lost_count+=1
+                
                 won=True
                 play=False
                 end_time = time.time()
@@ -134,6 +134,7 @@ def run_game(shape):
                 elapsed_time = int(current_time - start_time)
                 print(f"The game took {elapsed_time} seconds to complete!")
                 play = False
+                lost_count+=1
                 
                 if not len(bricks):
                     canvas = pygame.surface.Surface(board.render_size)
