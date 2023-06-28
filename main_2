@@ -224,7 +224,7 @@ def run_game(shape):
 
             # --- Limit to 60 frames per second
             iteration += 1
-            clock.tick(fps)           
+            # clock.tick(1)           
 
 
 
@@ -255,9 +255,9 @@ menu = pygame_menu.Menu("Select Game Layout!!", 400, 300, theme=pygame_menu.them
 
 
 # Add layout options and call the relevant function for layout construction
-menu.add.button("Rectangle", layout1_function)
-menu.add.button("Triangle", layout2_function)
-menu.add.button("Hollow Triangle", layout3_function)
+menu.add.button("Rectangle Bar", layout1_function)
+menu.add.button("Hollow Pyramid", layout2_function)
+menu.add.button("Cris Cross", layout3_function)
 menu.add.button("Exit", pygame_menu.events.EXIT)
 
 
