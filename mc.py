@@ -16,7 +16,7 @@ class Agent:
 
         self.points_per_brick: int = 0
         self.points_per_tick: int = -1
-        self.points_per_bump: int = 50
+        self.points_per_bump: int = 5000
         self.total_reward: int = 0
 
         self._tmp_bricks: Optional[int] = None
@@ -57,7 +57,7 @@ class Agent:
     def get_score(self, paddle_bumps: int):
         return (
             + self.points_per_tick
-            + paddle_bumps * self.points_per_bump
+            #+ paddle_bumps * self.points_per_bump
         )
 
     def remember_bounce(self, pos: tuple[int, int]):

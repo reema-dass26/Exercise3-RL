@@ -48,7 +48,7 @@ while not won:
 
     # Code for putting in the paddle
     paddle = Paddle(5, 1, *board.size)
-    ball = Ball(0, 0, 1, 1, (1,-1) , *board.size)
+    ball = Ball(0, 0, 1, 1, None , *board.size)
 
     bricks = create_bricks(3, (3, 1), 5)
 
@@ -60,7 +60,7 @@ while not won:
 
     # Define a clock
     clock = pygame.time.Clock()
-    #fps = 1
+    #fps = 30
     agent_wait_time = 10
     iteration = 0
     paddle_bumps: int = 0
@@ -85,11 +85,17 @@ while not won:
         if not iteration % agent_wait_time:
             # Agent:
 
+            # state = (
+            #     paddle.rect.x,  # Paddle position
+            #     paddle.speed,  # Paddle speed
+            #     (ball.rect.x, ball.rect.y),  # Ball position
+            #     tuple(ball.speed),  # Ball speed
+            # )
+
             state = (
-                paddle.rect.x,  # Paddle position
-                paddle.speed,  # Paddle speed
-                (ball.rect.x, ball.rect.y),  # Ball position
-                tuple(ball.speed),  # Ball speed
+               tuple(ball.speed),  # Ball speed
+               paddle.speed,       #Paddle speed
+               ball.rect.x-paddle.rect.x #Offset
             )
 
             action = agent.policy(state)
