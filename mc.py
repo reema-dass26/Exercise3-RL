@@ -1,6 +1,8 @@
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Type
 import random
 import numpy as np
+import pygame
+import matplotlib
 
 
 class Agent:
@@ -21,6 +23,7 @@ class Agent:
 
         self.last_speed: tuple[int, int] | None = None
         self.bounces: list[tuple[int, int]] = []
+        self.paddle_bounces: list[int] = []
 
     def policy(self, state) -> int:  # Returns action
         if state in self.state_action_pairs_rewards:
@@ -55,14 +58,55 @@ class Agent:
             + paddle_bumps * self.points_per_bump
         )
 
-    def remember_bounce(self, pos: tuple[int, int]):
+    def reset_graph(self):
+        self.bounces = []
+        self.last_speed = None
+        self.paddle_bounces = []
+
+    def remember_bounce(self, pos: tuple[int, int], paddle_bounce: bool):
         self.bounces.append(pos)
+        if paddle_bounce:
+            self.paddle_bounces.append(len(self.bounces) - 1)
 
     def speed_change(self, speed: tuple[int, int]):
         if speed != self.last_speed:
             self.last_speed = speed
             return True
         return False
+
+    def render_bounces(self, canvas: pygame.SurfaceType, scale_factor: int):
+        cmap = matplotlib.cm.get_cmap("hsv")
+        n_paddle_bounces: int = len(self.paddle_bounces)
+        color_index: float = 0.0
+        color: tuple[int, int, int, int] = tuple(
+            (int(c * 255) for c in cmap(color_index))
+        )  # type: ignore
+
+        for index, bounce in enumerate(self.bounces):
+            if not index:
+                continue
+
+            if index in self.paddle_bounces:
+                color_index += 1 / n_paddle_bounces
+                print(color_index)
+                color = tuple((int(c * 255) for c in cmap(color_index)))  # type: ignore
+
+            prev_bounce: tuple[int, int] = self.bounces[index - 1]
+            start_pos: tuple[int, int] = (
+                prev_bounce[0] * scale_factor + scale_factor // 2,  # X center
+                prev_bounce[1] * scale_factor + scale_factor // 2,  # Y center
+            )
+            end_pos: tuple[int, int] = (
+                bounce[0] * scale_factor + scale_factor // 2,  # X center
+                bounce[1] * scale_factor + scale_factor // 2,  # Y center
+            )
+            pygame.draw.aaline(
+                canvas,
+                color,
+                start_pos,
+                end_pos,
+            )
+        pygame.image.save(canvas, "trace.png")
 
 
 # State:

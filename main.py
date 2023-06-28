@@ -40,6 +40,8 @@ last_time = start_time
 board: Board = Board()
 board.display.set_caption("Breakout Game")
 agent = Agent()
+render_after: int = 20
+bounces_total: int = 0
 
 won = False
 while not won:
@@ -49,6 +51,10 @@ while not won:
     # Code for putting in the paddle
     paddle = Paddle(5, 1, *board.size)
     ball = Ball(0, 0, 1, 1, None, *board.size)
+
+    agent.reset_graph()
+    agent.remember_bounce((ball.rect.x, ball.rect.y), False)
+    agent.speed_change(ball.speed)
 
     bricks = create_bricks(3, (3, 1), 5)
 
@@ -60,7 +66,7 @@ while not won:
 
     # Define a clock
     clock = pygame.time.Clock()
-    fps = 20
+    fps = 120
     agent_wait_time = 10
     iteration = 0
     paddle_bumps: int = 0
@@ -108,6 +114,11 @@ while not won:
             print(f"The game took {elapsed_time} seconds to complete!")
             # pygame.time.delay(3000)
             play = False
+            if not len(bricks):
+                canvas = pygame.surface.Surface(board.render_size)
+                agent.render_bounces(
+                    canvas, board.render_size[0] // board.surface.get_width()
+                )
             break
             # Restarts the program after time delay
             # restart_program()
@@ -125,8 +136,6 @@ while not won:
         # Move paddle
         # Moving the paddle when the user uses the arrow keys
 
-        ball.reflect(bricks)
-
         if DEBUG:
             print(ball.speed)
 
@@ -134,6 +143,14 @@ while not won:
         # bricks = all_sprites_list.sprites()[2:]
         if ball.paddle_collision(paddle):
             paddle_bumps += 1
+            bounces_total += 1
+            paddle_bounce = True
+        else:
+            paddle_bounce = False
+
+        ball.reflect(bricks)
+        if agent.speed_change(ball.speed):
+            agent.remember_bounce((ball.rect.x, ball.rect.y), paddle_bounce)
         ball.move()
         paddle.move_x(paddle.speed)
         if paddle.collision_x():
@@ -171,6 +188,8 @@ while not won:
                 bricks:       {len(bricks)}
                 """
             )
+
+        print(iteration)
 
         # --- Go ahead and update the screen with what we've drawn.
         board.render()
