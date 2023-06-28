@@ -190,7 +190,7 @@ class Ball(movable.Movable):
             return True
         if len(bricks) == 0:
             print("Game is finished successfully!")
-            time.sleep(5000)
+            # time.sleep(5000)
             return False
         else:
             return False
