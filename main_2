@@ -97,6 +97,7 @@ def run_game(shape):
         iteration = 0
         paddle_bumps: int = 0
         current_time = time.time()
+        _n_bricks: int = len(bricks)
 
         # Loop to keep playing
         while play:
@@ -132,8 +133,9 @@ def run_game(shape):
             # Recognizes break successfully
             tobreak = False
             tobreak = ball.check_over(board.size[1], bricks)
+
             if len(bricks) == 0:
-                
+                agent.remember_bounce((ball.rect.x, ball.rect.y), paddle_bounce)
                 won=True
                 play=False
                 end_time = time.time()
@@ -145,6 +147,7 @@ def run_game(shape):
                 )
                 break
             if tobreak:
+                agent.remember_bounce((ball.rect.x, ball.rect.y), paddle_bounce)
                 elapsed_time = int(current_time - start_time)
                 print(f"The game took {elapsed_time} seconds to complete!")
                 play = False
@@ -184,8 +187,11 @@ def run_game(shape):
                 paddle_bounce = False
 
             ball.reflect(bricks)
-            if agent.speed_change(ball.speed):
+            
+            
+            if agent.speed_change(ball.speed) or len(bricks) != _n_bricks:
                 agent.remember_bounce((ball.rect.x, ball.rect.y), paddle_bounce)
+            _n_bricks = len(bricks)
             ball.move()
             paddle.move_x(paddle.speed)
             if paddle.collision_x():
