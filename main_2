@@ -23,7 +23,7 @@ def create_bricks(shape: str, brick_size: tuple[int, int] = (3, 1)):
 
     if shape == 'rectangle':
         shape: list[list[int]] = [
-        [1, 1, 1, 1, 1,],
+        [0, 0, 0, 1, 0,],
         # [1, 1, 1, 1, 1],
         # [1, 1, 1, 1, 1],
     ]
@@ -60,7 +60,7 @@ def run_game(shape):
     # Initializing values
     won = False
     shape=shape
-    
+    lost_count=0
     # Loop while the game is not won
     while not won:
 
@@ -122,10 +122,19 @@ def run_game(shape):
             # Recognizes break successfully
             tobreak = False
             tobreak = ball.check_over(board.size[1], bricks)
+            if len(bricks) == 0:
+                lost_count+=1
+                won=True
+                play=False
+                end_time = time.time()
+                exec_time=end_time - start_time
+                print('Execution time:', exec_time, 'seconds')
+                break
             if tobreak:
                 elapsed_time = int(current_time - start_time)
                 print(f"The game took {elapsed_time} seconds to complete!")
                 play = False
+                
                 if not len(bricks):
                     canvas = pygame.surface.Surface(board.render_size)
                     agent.render_bounces(
@@ -189,10 +198,10 @@ def run_game(shape):
                     reward:       {reward}
                     total_reward: {agent.total_reward}
                     bricks:       {len(bricks)}
+                    games_lost:    {lost_count}
                     """
                 )
             
-            print(iteration)
 
             # --- Go ahead and update the screen with what we've drawn.
             board.render()
@@ -200,7 +209,7 @@ def run_game(shape):
 
             # --- Limit to 60 frames per second
             iteration += 1
-            clock.tick(100)           
+            clock.tick(30)           
 
 
 

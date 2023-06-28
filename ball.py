@@ -188,10 +188,10 @@ class Ball(movable.Movable):
         if self.rect.y + self.rect.height == size_1:
             print("Game is over!")
             return True
-        if len(bricks) == 0:
-            print("Game is finished successfully!")
-            # time.sleep(5000)
-            return False
+        # if len(bricks) == 0:
+        #     print("Game is finished successfully!")
+        #     # time.sleep(5000)
+        #     return False
         else:
             return False
 
